@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Study Guides</title>
+  <script>
+    // Apply the saved (or system) theme before anything renders, to avoid a flash of the wrong theme.
+    (function () {
+      var saved = null;
+      try { saved = localStorage.getItem('theme'); } catch (e) {}
+      var dark = saved ? saved === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+      document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+    })();
+  </script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify@4.13.1/lib/themes/vue.css">
+  <style>
+    :root { --content-max-width: 60em; }
+    .markdown-section table { display: table; width: 100%; }
+    .markdown-section pre > code { font-size: 0.9em; }
+
+    /* Theme toggle button */
+    #theme-toggle {
+      position: fixed; top: 14px; right: 18px; z-index: 100;
+      width: 38px; height: 38px; border-radius: 50%;
+      border: 1px solid #d0d7de; background: #fff; color: #34495e;
+      font-size: 18px; line-height: 1; cursor: pointer;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, .12);
+    }
+    #theme-toggle:hover { transform: scale(1.06); }
+
+    /* Dark theme: overrides for docsify's vue.css */
+    [data-theme="dark"] body,
+    [data-theme="dark"] .sidebar,
+    [data-theme="dark"] .sidebar-toggle { background: #0f1419; color: #c9d1d9; }
+    [data-theme="dark"] .sidebar { border-right-color: #30363d; }
+    [data-theme="dark"] .sidebar ul li a,
+    [data-theme="dark"] .app-name-link { color: #c9d1d9; }
+    [data-theme="dark"] .sidebar ul li.active > a,
+    [data-theme="dark"] .sidebar ul li a:hover { color: #4fc08d; }
+    [data-theme="dark"] .sidebar-toggle span { background-color: #4fc08d; }
+    [data-theme="dark"] .markdown-section,
+    [data-theme="dark"] .markdown-section p,
+    [data-theme="dark"] .markdown-section li { color: #c9d1d9; }
+    [data-theme="dark"] .markdown-section h1,
+    [data-theme="dark"] .markdown-section h2,
+    [data-theme="dark"] .markdown-section h3,
+    [data-theme="dark"] .markdown-section h4,
+    [data-theme="dark"] .markdown-section strong { color: #e6edf3; }
+    [data-theme="dark"] .markdown-section a { color: #58c49a; }
+    [data-theme="dark"] .markdown-section code,
+    [data-theme="dark"] .markdown-section pre,
+    [data-theme="dark"] .markdown-section pre > code { background-color: #161b22; color: #e6edf3; }
+    [data-theme="dark"] .markdown-section pre:after { color: #8b949e; }
+    [data-theme="dark"] .markdown-section tr { border-top-color: #30363d; }
+    [data-theme="dark"] .markdown-section td,
+    [data-theme="dark"] .markdown-section th { border-color: #30363d; }
+    [data-theme="dark"] .markdown-section tr:nth-child(2n) { background-color: #161b22; }
+    [data-theme="dark"] .markdown-section blockquote { border-left-color: #4fc08d; color: #9ba7b4; }
+    [data-theme="dark"] .markdown-section hr { border-bottom-color: #30363d; }
+    [data-theme="dark"] .search input { background: #161b22; color: #e6edf3; border-color: #30363d; }
+    [data-theme="dark"] .search { border-bottom-color: #30363d; }
+    [data-theme="dark"] .search .matching-post { border-bottom-color: #30363d; }
+    [data-theme="dark"] .search p { color: #9ba7b4; }
+    [data-theme="dark"] .docsify-copy-code-button { background: #30363d; }
+    [data-theme="dark"] .token.comment, [data-theme="dark"] .token.prolog { color: #8b949e; }
+    [data-theme="dark"] .token.keyword, [data-theme="dark"] .token.tag { color: #ff7b72; }
+    [data-theme="dark"] .token.string, [data-theme="dark"] .token.attr-value { color: #a5d6ff; }
+    [data-theme="dark"] .token.function { color: #d2a8ff; }
+    [data-theme="dark"] .token.number, [data-theme="dark"] .token.boolean { color: #79c0ff; }
+    [data-theme="dark"] .token.operator, [data-theme="dark"] .token.punctuation { color: #c9d1d9; }
+    [data-theme="dark"] #theme-toggle { background: #161b22; color: #e6edf3; border-color: #30363d; }
+  </style>
+</head>
+<body>
+  <button id="theme-toggle" type="button" aria-label="Toggle dark/light theme"></button>
+  <div id="app">Loading…</div>
+  <script>
+    function currentTheme() {
+      return document.documentElement.getAttribute('data-theme');
+    }
+
+    function renderMermaid() {
+      if (!window.mermaid) return;
+      mermaid.initialize({ startOnLoad: false, theme: currentTheme() === 'dark' ? 'dark' : 'default' });
+      document.querySelectorAll('.mermaid[data-src]').forEach(function (el) {
+        el.removeAttribute('data-processed');
+        el.innerHTML = decodeURIComponent(el.getAttribute('data-src')); // re-render from the source
+      });
+      mermaid.run({ querySelector: '.mermaid' });
+    }
+
+    function updateButton() {
+      var dark = currentTheme() === 'dark';
+      var btn = document.getElementById('theme-toggle');
+      btn.textContent = dark ? '☀️' : '🌙';
+      btn.title = dark ? 'Light theme' : 'Dark theme';
+    }
+
+    document.getElementById('theme-toggle').addEventListener('click', function () {
+      var next = currentTheme() === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+      try { localStorage.setItem('theme', next); } catch (e) {}
+      updateButton();
+      renderMermaid();
+    });
+    updateButton();
+
+    window.$docsify = {
+      name: 'Study Guides',
+      homepage: 'README.md',
+      loadSidebar: true,           // _sidebar.md per guide locale (generated by scripts/build_nav.py)
+      relativePath: true,          // links between .md files are relative, as in the repo
+      auto2top: true,
+      subMaxLevel: 2,              // headings of the current page under its sidebar entry
+      nameLink: '#/',
+      search: { depth: 3, placeholder: 'Search / Buscar' },
+      copyCode: { buttonText: 'Copy', successText: 'Copied' },
+      markdown: {
+        renderer: {
+          code(code, lang) {
+            if (lang === 'mermaid') {
+              // keep the source so the diagram can be re-rendered when the theme changes
+              return '<div class="mermaid" data-src="' + encodeURIComponent(code) + '">' + code + '</div>';
+            }
+            return this.origin.code.apply(this, arguments);
+          }
+        }
+      },
+      plugins: [
+        function (hook) {
+          hook.doneEach(renderMermaid);
+        }
+      ]
+    };
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/docsify@4.13.1/lib/docsify.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/docsify@4.13.1/lib/plugins/search.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/docsify-copy-code@3.0.0/dist/docsify-copy-code.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-go.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-bash.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-powershell.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-json.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-yaml.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-docker.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+</body>
+</html>
